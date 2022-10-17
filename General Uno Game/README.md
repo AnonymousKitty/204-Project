@@ -1,10 +1,10 @@
-#Uno Game Code
+# Uno Game Code
 
 
-##This folder contains the python files to run a basic uno game
+## This folder contains the python files to run a basic uno game
 
 
-###So far the program can:
+### So far the program can:
 - Pick random cards for players and assign them uno indentities. The program can also join multiple cards together and assign them to a player. 
 - Make multiple players, each with different hands, and retreive information of that player such as:
   - Name
@@ -19,7 +19,7 @@
 - Run through the game and keep track of the card on top
 
 
-###What needs to be done:
+### What needs to be done:
 - Correct for power up use
 - Create an AI for the NPCs
 - Make the rules file in a way that another file can ask if a card is valid to be played or not
