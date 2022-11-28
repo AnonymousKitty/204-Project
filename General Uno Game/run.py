@@ -6,13 +6,16 @@ from bauhaus.utils import count_solutions, likelihood
 E = Encoding()
 
 # Set the properties of Uno cards
-NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, None]
-COLORS = ['RED','GREEN','BLUE','YELLOW', None]
+NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+COLORS = ['RED','GREEN','BLUE','YELLOW']
 TYPES = ['regular', 'reverse', 'skip', 'wild', 'wild pick up']
+#position in hand or top card of pile
 POSITIONS = [1, 2, 3, 'top']
+#whether other players have 3 cards
 NUMOFCARDS = [True, False]
 # NUMOFCARDS is True when the player has more than 3 cards in their hand, and false when they have 3 or less cards in their hand
 
+#Propositions for the game 
 PROPOSITIONS = []
 
 @proposition(E)
@@ -28,12 +31,24 @@ class NumberColorType:
         return f"card@{self.position}=[{self.number},{self.color},{self.type}]"
 
 #create all of the needed propositions for NumberColourType
-for number in NUMBERS:
-  for color in COLORS:
-     for type in TYPES:
-       for position in POSITIONS:
-         PROPOSITIONS.append(NumberColourType(number, color, type, position))
-
+for type in TYPES:
+  if type == 'regular':
+    for number in NUMBERS:
+      for position in POSITIONS:
+        for color in COLORS:
+          PROPOSITIONS.append(NumberColorType(number, color, 'regular', position))
+  else if (type == "wild" | type == "wild pick up"):
+    for position in POSITIONS
+      color = None
+      number = None
+      PROPOSITIONS.append(NumberColorType(number, color, type, position))
+  else:
+    for color in COLORS:
+      for position in POSITIONS:
+        PROPOSITIONS.append(NumberColorType(None, color, type, position))
+    
+    
+#for whether or not players have 3 cards or not
 @proposition(E)
 class NumOfCards:
   def __init__(self, player2, player3, player4):
@@ -44,7 +59,7 @@ class NumOfCards:
   def __repr__(self):
     return f"P2={self.player2}, P3={self.player3}, P4={self.player4}"
 
-#create all possibilities of numbers of cards other players can have
+#create all possibilities other players have 3 cards or not
 for numOfCardsP2 in NUMOFCARDS:
   for numOfCardsP3 in NUMOFCARDS:
     for numOfCardsP4 in NUMOFCARDS:
@@ -61,13 +76,24 @@ for numOfCardsP2 in NUMOFCARDS:
 #  There should be at least 10 variables, and a sufficiently large formula to describe it (>50 operators).
 #  This restriction is fairly minimal, and if there is any concern, reach out to the teaching staff to clarify
 #  what the expectations are.
+
 def example_theory():
-    # Add custom constraints by creating formulas with the variables you created. 
+    # Add custom constraints by creating formulas with the variables you created.
+  
+    # If the palyer has a card that is the same color as the top card, it can be played
+  for pro in PROPOSITIONS:
+    for position in POSITIONS:
+      for number in NUMBER:
+        for type in TYPE:
+          if color1 == color2:
+            E.add_constraint()
+            
+      
     E.add_constraint((a | b) & ~x)
     # Implication
     E.add_constraint(y >> z)
     # Negate a formula
-    E.add_constraint((x & y).negate())
+    E.add_constraint(~(x & y))
     # You can also add more customized "fancy" constraints. Use case: you don't want to enforce "exactly one"
     # for every instance of BasicPropositions, but you want to enforce it for a, b, and c.:
     constraint.add_exactly_one(E, a, b, c)
