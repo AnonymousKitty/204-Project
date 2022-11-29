@@ -6,21 +6,23 @@ from bauhaus.utils import count_solutions, likelihood
 E = Encoding()
 
 # Set the properties of Uno cards
-NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-COLORS = ['RED','GREEN','BLUE','YELLOW']
+NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, None]
+COLORS = ['RED','GREEN','BLUE','YELLOW', None]
 TYPES = ['regular', 'reverse', 'skip', 'wild', 'wild pick up']
 #position in hand or top card of pile
 POSITIONS = [1, 2, 3, 'top']
 #whether other players have 3 cards
-NUMOFCARDS = [True, False]
 # NUMOFCARDS is True when the player has more than 3 cards in their hand, and false when they have 3 or less cards in their hand
+NUMOFCARDS = [True, False]
+#places players can exist. Using term "Direction" instead of P1/P2/P3 because of the need to specify when a player in place 'a' has more or less than 3 cards
+DIRECTION = ['Left', 'Front', 'Right']
 
 #Propositions for the game 
 PROPOSITIONS = []
 
 @proposition(E)
 class NumberColorType:
-
+# Creates a possible card type
     def __init__(self, number, color, type, position):
         self.number = number
         self.color = color
@@ -30,40 +32,28 @@ class NumberColorType:
     def __repr__(self):
         return f"card@{self.position}=[{self.number},{self.color},{self.type}]"
 
-#create all of the needed propositions for NumberColourType
-for type in TYPES:
-  if type == 'regular':
-    for number in NUMBERS:
-      for position in POSITIONS:
-        for color in COLORS:
-          PROPOSITIONS.append(NumberColorType(number, color, 'regular', position))
-  else if (type == "wild" | type == "wild pick up"):
-    for position in POSITIONS
-      color = None
-      number = None
-      PROPOSITIONS.append(NumberColorType(number, color, type, position))
-  else:
-    for color in COLORS:
-      for position in POSITIONS:
-        PROPOSITIONS.append(NumberColorType(None, color, type, position))
+#create ALL of the needed propositions for card types
+for number in NUMBERS:
+  for color in COLORS:
+     for type in TYPES:
+       for position in POSITIONS:
+         PROPOSITIONS.append(NumberColourType(number, color, type, position))
     
     
-#for whether or not players have 3 cards or not
 @proposition(E)
 class NumOfCards:
-  def __init__(self, player2, player3, player4):
-    self.player2 = player2
-    self.player3 = player3
-    self.player4 = player4
+  #for whether or not players have 3 cards or not
+  def __init__(self, player, bool):
+    self.player = player
+    self.hasMoreThanThree = bool
     
   def __repr__(self):
-    return f"P2={self.player2}, P3={self.player3}, P4={self.player4}"
+    return f"player@{self.player}={self.hasMoreThanThree}"
 
 #create all possibilities other players have 3 cards or not
-for numOfCardsP2 in NUMOFCARDS:
-  for numOfCardsP3 in NUMOFCARDS:
-    for numOfCardsP4 in NUMOFCARDS:
-      PROPOSITIONS.append(NumOfCards(numOfCardsP2, numOfCardsP3, numOfCardsP4))
+for player in DIRECTION:
+  for bool in NUMOFCARDS:
+    PROPOSITIONS.append(NumOfCards(player, bool))
 
 # Different classes for propositions are useful because this allows for more dynamic constraint creation
 # for propositions within that class. For example, you can enforce that "at least one" of the propositions
