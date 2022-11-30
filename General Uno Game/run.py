@@ -92,8 +92,7 @@ for position in POSITIONS:
 # Add custom constraints by creating formulas with the variables you created.
 
 # for each type, there exists a constraint on wether there will be a number and/or color or not
-
-
+# all print() with letters inside are for debugging. remove for final draft.
 for position in POSITIONS:
     for number in NUMBERS:
         for type in TYPES:
@@ -112,6 +111,17 @@ for position in POSITIONS:
                 if number == None:
                     print("c")
                     constraint.add_exactly_one(E, [NumberColorType(number, color, type, position) for color in COLORS])
+
+
+# same color
+for number in NUMBERS:
+  for color1 in COLORS:
+    for color2 in COLORS:
+      for type in TYPES:
+        for position1 in POSITIONS:
+          for position2 in POSITIONS:
+            if (color1 == color2 and position1 != 'top' and position2 == 'top'):
+              E.add_constraint(NumberColorType(number, color1, type1, position) >> )
 
 
 def example_theory():
