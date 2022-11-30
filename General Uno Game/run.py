@@ -6,7 +6,7 @@ E = Encoding()
 
 # Set the properties of Uno cards
 NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, None]
-COLORS = ['RED', 'GREEN', 'BLUE', 'YELLOW', None]
+COLORS = ['RED', 'GREEN', 'BLUE', 'YELLOW']
 TYPES = ['regular', 'reverse', 'skip', 'wild', 'wild pick up']
 # position in hand or top card of pile
 POSITIONS = [1, 2, 3, 'top']
@@ -19,9 +19,18 @@ DIRECTION = ['Left', 'Front', 'Right']
 # Propositions for the game
 PROPOSITIONS = []
 
+class Unique(object):
+  def __hash__(self):
+    return hash(str(self))
+  def __eq__(self, other):
+    return hash(self) == hash(other)
+  def __repr__(self):
+    return str(self)
+  def __str__(self):
+    assert False, "You need to define the __str__ function on a proposition class"
 
 @proposition(E)
-class NumberColorType:
+class NumberColorType(Unique):
     # Creates a possible card type
     def __init__(self, number, color, type, position):
         self.number = number
@@ -42,7 +51,7 @@ for number in NUMBERS:
 
 
 @proposition(E)
-class NumOfCards:
+class NumOfCards(Unique):
     # for whether or not players have 3 cards or not
     def __init__(self, player, bool):
         self.player = player
@@ -57,10 +66,9 @@ for player in DIRECTION:
     for bool in NUMOFCARDS:
         PROPOSITIONS.append(NumOfCards(player, bool))
 
+for positions in POSITIONS:
+  constraint.add_exactly_one(E, [NumberColorType(number, color, type)])
 
-# Different classes for propositions are useful because this allows for more dynamic constraint creation
-# for propositions within that class. For example, you can enforce that "at least one" of the propositions
-# that are instances of this class must be true by using a @constraint decorator.
 # other options include: at most one, exactly one, at most k, and implies all.
 # For a complete module reference, see https://bauhaus.readthedocs.io/en/latest/bauhaus.html
 @constraint.at_least_one(E)
@@ -69,10 +77,31 @@ for player in DIRECTION:
 #  There should be at least 10 variables, and a sufficiently large formula to describe it (>50 operators).
 #  This restriction is fairly minimal, and if there is any concern, reach out to the teaching staff to clarify
 #  what the expectations are.
+# CONSTRAINTS
 
+# A card need to be a valid card if: 
+# 1) the card is a "regular" card with a number and aacolor
+# 2) the card is a "wild" or "wild pick up" card with neither number nor color
+# 3) the card is a "reverse" or "skip" card with a color but no number
+# Add custom constraints by creating formulas with the variables you created.
+
+for position in POSITIONS:
+  for number in NUMBERS:
+      for type in TYPES:
+        if type == 'regular':
+          if number != None:
+            constraint.add_exactly_one(E, [NumberColorType(number, color, type, position) for color in COLORS) 
+        else if type == 'wild' or type == 'wild pick up':
+          if number == None:
+            constraint.add_exactly_one(E, [NumberColorType(number, None, type, position)]) 
+        else:
+          if number == None:
+            constraint.add_exactly_one(E, [NumberColorType(number, color, type, position)] for color in COLORS) 
+              
+
+
+            
 def example_theory():
-    # Add custom constraints by creating formulas with the variables you created.
-
     # If the palyer has a card that is the same color as the top card, it can be played
 
     pass
