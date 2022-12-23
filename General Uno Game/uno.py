@@ -7,7 +7,7 @@ import player
 import card
 import random
 import playerAI
-import unoRules
+# import unoRules
 
 #Randomizer
 def pick_card():
@@ -31,7 +31,8 @@ def pick_card():
         num = random.randint(0,9)
     elif power == "wild":
         if random.randint(0,1) == 1:
-            num = 4
+            power = "wild pickup"
+            num = -1
         else:
             num = -1
     else:
@@ -43,7 +44,7 @@ def pick_card():
 # generate 7 initial cards for each player (4 Players)
 def pick_hand():
     hand = []
-    for num in range(7):
+    for num in range(2):
         hand.append(pick_card())
     return hand
 
@@ -79,6 +80,24 @@ def itterate_cards(hand):
     for i in range(hand.get_num_cards()):
         print("Your card", (i+1), "is", hand.get_card(i).get_string())
 
+def check_card(player, card_place, top_card):
+    player_card = player.get_card(card_place)
+    if player_card.get_type() == 'wild' or player_card.get_type() == 'wild pickup':
+        color = -1
+        while color >3 or color <0:
+            print("What color would you like to change to?")
+            color = int(input("Type 0 for RED, 1 for BLUE, 2 for GREEN, or 3 for YELLOW:"))
+            print(color)
+        player_card.change_color(color)
+        return  card_place
+    if player_card.get_number() == top_card.get_number() and player_card.get_number() != -1:
+        return card_place
+    elif player_card.get_type() == top_card.get_type() and player_card.get_type() != "None":
+        return  card_place
+    elif player_card.get_color() == top_card.get_color():
+        return  card_place
+
+    return -2
 '''
 This is test code
 for i in opponent_decks:
@@ -89,7 +108,7 @@ for i in opponent_decks:
 
 #start the game
 top_card = (pick_card())
-while top_card.get_type == "wild":
+while top_card.get_type() == "wild" or top_card.get_type() == "wild pickup":
     top_card = (pick_card())
 
 def make_move(top_card, player_going):
@@ -99,6 +118,8 @@ def make_move(top_card, player_going):
     card_played = -2
     while card_played < -1 or card_played > (player_going.get_num_cards() - 1):
         card_played = int(input("\nWhich card would you like to play? (Type 0 if you would like to pick up a card)\n")) - 1
+        if card_played != -1:
+            card_played = check_card(player_going, card_played, top_card)
     if card_played == -1:
         picked_up = pick_card()
         print("You picked up a ", picked_up.get_string())
@@ -111,9 +132,96 @@ def make_move(top_card, player_going):
 
 game_going = True
 player_going = 1
+rev = False
+duplicate = 0
 while game_going:
-    top_card = make_move(top_card, players[player_going])
-    if player_going<3:
-        player_going +=1
+    if top_card.get_type() == 'wild' or top_card.get_type() == 'None' or top_card.check_played() == True:
+        top_card = make_move(top_card, players[player_going])
     else:
-        player_going = 0
+        # wild pickup, pickup, reverse, skip
+        if top_card.get_type() == 'wild pickup':
+            canPlay = False
+            for i in players[player_going].get_all_cards():
+                if i.get_type() == 'wild pickup':
+                    canPlay = True
+                    break
+            if canPlay == False:
+                pickup_cards = 4 + 4*duplicate
+                for i in range(pickup_cards):
+                    picked_up = pick_card()
+                    print("You picked up a ", picked_up.get_string())
+                    players[player_going].add_card(picked_up)
+                    duplicate = 0
+                print("You Picked up a total of", pickup_cards, "cards... T-T")
+                top_card.change_played()
+            else:
+                new_top_card = make_move(top_card, players[player_going])
+                if new_top_card == top_card:
+                    pickup_cards = 4 + 4*duplicate -1
+                    for i in range(pickup_cards):
+                        picked_up = pick_card()
+                        print("You picked up a ", picked_up.get_string())
+                        players[player_going].add_card(picked_up)
+                        duplicate = 0
+                    print("You Picked up a total of", pickup_cards + 1, "cards... T-T")
+                    top_card.change_played()
+                else:
+                    top_card = new_top_card
+                    duplicate += 1
+        if top_card.get_type() == 'pickup':
+            if top_card.get_type() == 'pickup':
+                canPlay = False
+                for i in players[player_going].get_all_cards():
+                    if i.get_type() == 'pickup':
+                        canPlay = True
+                        break
+                if canPlay == False:
+                    pickup_cards = 2 + 2 * duplicate
+                    for i in range(pickup_cards):
+                        picked_up = pick_card()
+                        print("You picked up a ", picked_up.get_string())
+                        players[player_going].add_card(picked_up)
+                        duplicate = 0
+                    print("You Picked up a total of", pickup_cards, "cards... T-T")
+                    top_card.change_played()
+                else:
+                    new_top_card = make_move(top_card, players[player_going])
+                    if new_top_card == top_card:
+                        pickup_cards = 2 + 2 * duplicate - 1
+                        for i in range(pickup_cards):
+                            picked_up = pick_card()
+                            print("You picked up a ", picked_up.get_string())
+                            players[player_going].add_card(picked_up)
+                            duplicate = 0
+                        print("You Picked up a total of", pickup_cards + 1, "cards... T-T")
+                        top_card.change_played()
+                    else:
+                        top_card = new_top_card
+                        duplicate += 1
+        if top_card.get_type() == 'reverse':
+            if rev == True:
+                rev = False
+            else:
+                rev = True
+            top_card.change_played()
+        if top_card.get_type() == 'skip':
+            print("Player", player_number+1, "was skipped.")
+            top_card.change_played()
+        print("imagine this actually worked...")
+
+
+    if players[player_going].get_num_cards() == 0:
+        game_going = False
+        break
+    if rev == False:
+        if player_going<3:
+            player_going +=1
+        else:
+            player_going = 0
+    if rev == True:
+        if player_going >0:
+            player_going -= 1
+        else:
+            player_going = 3
+
+print("Congratulations Player", player_going)
