@@ -1,7 +1,7 @@
 '''
 Catarina Borges
 2022/10/14
-Uno game V1
+Uno game V1.3
 '''
 import player
 import card
